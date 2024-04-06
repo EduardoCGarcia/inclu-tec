@@ -8,7 +8,9 @@ import {
   DocumentData, 
   getDocs, 
   getDoc,
-  doc
+  doc,
+  collectionData,
+  docData
 
 } from '@angular/fire/firestore';
 
@@ -21,28 +23,14 @@ import { from, map, tap, Observable } from "rxjs";
 export class FirestoreSharedService {
   constructor(private fs: Firestore) {}
 
-  public getAllDocuments<T>(collectionName: string): Observable<T[]> {
-    const q = query(collection(this.fs, collectionName))
-    return from(getDocs(q)).pipe(
-      map((querySnapShot) => {
-        return querySnapShot.docs.map((doc) => {
-          const id = doc.id
-          const data = doc.data() as T
-          return { id, ...data }
-        })
-      })
-    )
+  public getAllDocuments(collectionName: string):Observable<DocumentData>{
+    const q = collection(this.fs, collectionName)
+    return collectionData(q,{idField:'id'})
   }
 
-  public getDocumentById<T>(collectionName:string, documentId:string): Observable<T | undefined> {
-    return from(getDoc(doc(collection(this.fs,collectionName),documentId))).pipe(
-      map((docSnapShot) => {
-        if (docSnapShot.exists()) {
-          return docSnapShot.data() as T
-        }
-        return undefined
-      })
-    )
-  }
+  public getDocumentById<T>(collectionName: string, documentId: string) {
+    const docRef = doc(this.fs, collectionName, documentId);
+    return docData(docRef);
+}
 
 }
